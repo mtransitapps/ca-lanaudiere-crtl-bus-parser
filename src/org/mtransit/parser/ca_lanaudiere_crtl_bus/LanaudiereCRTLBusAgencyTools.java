@@ -1,10 +1,13 @@
 package org.mtransit.parser.ca_lanaudiere_crtl_bus;
 
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.Utils;
+import org.mtransit.parser.gtfs.data.GCalendar;
+import org.mtransit.parser.gtfs.data.GCalendarDate;
 import org.mtransit.parser.gtfs.data.GRoute;
 import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.gtfs.data.GTrip;
@@ -78,23 +81,11 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 		return MSpec.cleanLabel(routeLongName);
 	}
 
-	@Override
-	public String getRouteShortName(GRoute gRoute) {
-		return super.getRouteShortName(gRoute);
-	}
-
 	private static final String ROUTE_COLOR = "0058AD";
 
 	@Override
 	public String getRouteColor(GRoute gRoute) {
 		return ROUTE_COLOR;
-	}
-
-	private static final String ROUTE_TEXT_COLOR = "FFFFFF";
-
-	@Override
-	public String getRouteTextColor(GRoute gRoute) {
-		return ROUTE_TEXT_COLOR;
 	}
 
 	@Override
