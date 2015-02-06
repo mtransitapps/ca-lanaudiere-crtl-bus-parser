@@ -81,11 +81,11 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 		return MSpec.cleanLabel(routeLongName);
 	}
 
-	private static final String ROUTE_COLOR = "0058AD";
+	private static final String AGENCY_COLOR = "0058AD";
 
 	@Override
-	public String getRouteColor(GRoute gRoute) {
-		return ROUTE_COLOR;
+	public String getAgencyColor() {
+		return AGENCY_COLOR;
 	}
 
 	@Override
