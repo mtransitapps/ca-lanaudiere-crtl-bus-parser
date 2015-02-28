@@ -72,7 +72,7 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 			return true;
 		}
 		if (gRoute.route_id.length() < 2) {
-			return true;
+			return true; // exclude CTJM Joliette Bus
 		}
 		return super.excludeRoute(gRoute);
 	}
