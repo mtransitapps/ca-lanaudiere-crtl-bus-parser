@@ -71,6 +71,9 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 		if (ROUTE_TYPE_FILTER != null && !gRoute.route_type.equals(ROUTE_TYPE_FILTER)) {
 			return true;
 		}
+		if (gRoute.route_id.length() < 2) {
+			return true;
+		}
 		return super.excludeRoute(gRoute);
 	}
 
