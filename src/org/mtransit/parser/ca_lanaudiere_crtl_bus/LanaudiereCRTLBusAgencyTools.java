@@ -68,7 +68,7 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public boolean excludeRoute(GRoute gRoute) {
-		if (gRoute.route_id.length() < 2) {
+		if (gRoute.getRouteId().length() < 2) {
 			return true; // exclude CTJM Joliette Bus
 		}
 		return super.excludeRoute(gRoute);
@@ -81,7 +81,7 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String getRouteLongName(GRoute gRoute) {
-		String routeLongName = gRoute.route_long_name;
+		String routeLongName = gRoute.getRouteLongName();
 		routeLongName = CleanUtils.SAINT.matcher(routeLongName).replaceAll(CleanUtils.SAINT_REPLACEMENT);
 		return CleanUtils.cleanLabel(routeLongName);
 	}
@@ -95,7 +95,7 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
-		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.trip_headsign), gTrip.direction_id);
+		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.getTripHeadsign()), gTrip.getDirectionId());
 	}
 
 	private static final Pattern DIRECTION = Pattern.compile("(direction )", Pattern.CASE_INSENSITIVE);
@@ -136,7 +136,7 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public String getStopCode(GStop gStop) {
-		if ("0".equals(gStop.stop_code)) {
+		if ("0".equals(gStop.getStopCode())) {
 			return null;
 		}
 		return super.getStopCode(gStop);
@@ -151,26 +151,26 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 			return Integer.valueOf(stopCode); // using stop code as stop ID
 		}
 		// generating integer stop ID
-		Matcher matcher = DIGITS.matcher(gStop.stop_id);
+		Matcher matcher = DIGITS.matcher(gStop.getStopId());
 		matcher.find();
 		int digits = Integer.parseInt(matcher.group());
 		int stopId;
-		if (gStop.stop_id.startsWith("RDP")) {
+		if (gStop.getStopId().startsWith("RDP")) {
 			stopId = 100000;
-		} else if (gStop.stop_id.startsWith("SFV")) {
+		} else if (gStop.getStopId().startsWith("SFV")) {
 			stopId = 200000;
-		} else if (gStop.stop_id.startsWith("SMS")) {
+		} else if (gStop.getStopId().startsWith("SMS")) {
 			stopId = 300000;
 		} else {
 			System.out.println("Stop doesn't have an ID (start with)! " + gStop);
 			System.exit(-1);
 			stopId = -1;
 		}
-		if (gStop.stop_id.endsWith("A")) {
+		if (gStop.getStopId().endsWith("A")) {
 			stopId += 1000;
-		} else if (gStop.stop_id.endsWith("B")) {
+		} else if (gStop.getStopId().endsWith("B")) {
 			stopId += 2000;
-		} else if (gStop.stop_id.endsWith("D")) {
+		} else if (gStop.getStopId().endsWith("D")) {
 			stopId += 4000;
 		} else {
 			System.out.println("Stop doesn't have an ID (end with)! " + gStop);
