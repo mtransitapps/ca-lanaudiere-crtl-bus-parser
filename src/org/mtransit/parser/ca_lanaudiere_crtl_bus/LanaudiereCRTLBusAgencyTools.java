@@ -1,9 +1,12 @@
 package org.mtransit.parser.ca_lanaudiere_crtl_bus;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.Utils;
 import org.mtransit.parser.gtfs.data.GCalendar;
@@ -99,16 +102,57 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 	}
 
 	private static final Pattern DIRECTION = Pattern.compile("(direction )", Pattern.CASE_INSENSITIVE);
-	private static final String DIRECTION_REPLACEMENT = "";
 
 	private static final Pattern SECTEUR = Pattern.compile("(secteur[s]? )", Pattern.CASE_INSENSITIVE);
-	private static final String SECTEUR_REPLACEMENT = "";
+
+	private static final Pattern ST_LIN_LAURENTIDES = Pattern.compile("((saint|st)\\-lin(\\-| )laurentides)", Pattern.CASE_INSENSITIVE);
+	private static final String ST_LIN_LAURENTIDES_REPLACEMENT = CleanUtils.SAINT_REPLACEMENT + "-Lin-Laurentides";
 
 	@Override
 	public String cleanTripHeadsign(String tripHeadsign) {
-		tripHeadsign = DIRECTION.matcher(tripHeadsign).replaceAll(DIRECTION_REPLACEMENT);
-		tripHeadsign = SECTEUR.matcher(tripHeadsign).replaceAll(SECTEUR_REPLACEMENT);
+		tripHeadsign = DIRECTION.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+		tripHeadsign = SECTEUR.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+		tripHeadsign = ST_LIN_LAURENTIDES.matcher(tripHeadsign).replaceAll(ST_LIN_LAURENTIDES_REPLACEMENT);
 		return CleanUtils.cleanLabelFR(tripHeadsign);
+	}
+
+	@Override
+	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
+		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
+		if (mTrip.getRouteId() == 32L) {
+			if (Arrays.asList( //
+					"St-Félix-De-Valois", //
+					"St-Michel-Des-Sts" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("St-Michel-Des-Sts", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 125L) {
+			if (Arrays.asList( //
+					"Chertsey", //
+					"St-Donat" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("St-Donat", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 138L) {
+			if (Arrays.asList( //
+					"Lavaltrie", // <>
+					"Berthierville" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Berthierville", mTrip.getHeadsignId());
+				return true;
+			} else if (Arrays.asList( //
+					"Lavaltrie", // <>
+					"Joliette" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Joliette", mTrip.getHeadsignId());
+				return true;
+			}
+		}
+		System.out.printf("\nUnepected trips to merge %s & %s\n", mTrip, mTripToMerge);
+		System.exit(-1);
+		return false;
 	}
 
 	private static final Pattern START_WITH_FACE_A = Pattern.compile("^(face à )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
@@ -150,32 +194,35 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 		if (stopCode != null && stopCode.length() > 0) {
 			return Integer.valueOf(stopCode); // using stop code as stop ID
 		}
-		// generating integer stop ID
 		Matcher matcher = DIGITS.matcher(gStop.getStopId());
-		matcher.find();
-		int digits = Integer.parseInt(matcher.group());
-		int stopId;
-		if (gStop.getStopId().startsWith("RDP")) {
-			stopId = 100000;
-		} else if (gStop.getStopId().startsWith("SFV")) {
-			stopId = 200000;
-		} else if (gStop.getStopId().startsWith("SMS")) {
-			stopId = 300000;
-		} else {
-			System.out.println("Stop doesn't have an ID (start with)! " + gStop);
-			System.exit(-1);
-			stopId = -1;
+		if (matcher.find()) {
+			int digits = Integer.parseInt(matcher.group());
+			int stopId;
+			if (gStop.getStopId().startsWith("RDP")) {
+				stopId = 100000;
+			} else if (gStop.getStopId().startsWith("SFV")) {
+				stopId = 200000;
+			} else if (gStop.getStopId().startsWith("SMS")) {
+				stopId = 300000;
+			} else {
+				System.out.println("Stop doesn't have an ID (start with)! " + gStop);
+				System.exit(-1);
+				stopId = -1;
+			}
+			if (gStop.getStopId().endsWith("A")) {
+				stopId += 1000;
+			} else if (gStop.getStopId().endsWith("B")) {
+				stopId += 2000;
+			} else if (gStop.getStopId().endsWith("D")) {
+				stopId += 4000;
+			} else {
+				System.out.println("Stop doesn't have an ID (end with)! " + gStop);
+				System.exit(-1);
+			}
+			return stopId + digits;
 		}
-		if (gStop.getStopId().endsWith("A")) {
-			stopId += 1000;
-		} else if (gStop.getStopId().endsWith("B")) {
-			stopId += 2000;
-		} else if (gStop.getStopId().endsWith("D")) {
-			stopId += 4000;
-		} else {
-			System.out.println("Stop doesn't have an ID (end with)! " + gStop);
-			System.exit(-1);
-		}
-		return stopId + digits;
+		System.out.printf("\nUnexpected stop ID for %s!\n", gStop);
+		System.exit(-1);
+		return -1;
 	}
 }
