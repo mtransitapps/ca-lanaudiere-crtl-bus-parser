@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.mtransit.parser.DefaultAgencyTools;
+import org.mtransit.parser.MTLog;
 import org.mtransit.parser.Utils;
 import org.mtransit.parser.gtfs.data.GCalendar;
 import org.mtransit.parser.gtfs.data.GCalendarDate;
@@ -20,8 +21,8 @@ import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.CleanUtils;
 import org.mtransit.parser.mt.data.MTrip;
 
-// https://rtm.quebec/en/about/open-data
-// https://rtm.quebec/xdata/crtl/google_transit.zip
+// https://exo.quebec/en/about/open-data
+// https://exo.quebec/xdata/crtl/google_transit.zip
 public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(String[] args) {
@@ -38,11 +39,11 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public void start(String[] args) {
-		System.out.printf("\nGenerating CRTL bus data...");
+		MTLog.log("Generating CRTL bus data...");
 		long start = System.currentTimeMillis();
 		this.serviceIds = extractUsefulServiceIds(args, this);
 		super.start(args);
-		System.out.printf("\nGenerating CRTL bus data... DONE in %s.\n", Utils.getPrettyDuration(System.currentTimeMillis() - start));
+		MTLog.log("Generating CRTL bus data... DONE in %s.", Utils.getPrettyDuration(System.currentTimeMillis() - start));
 	}
 
 	@Override
@@ -159,9 +160,7 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 				return true;
 			}
 		}
-		System.out.printf("\nUnepected trips to merge %s & %s\n", mTrip, mTripToMerge);
-		System.exit(-1);
-		return false;
+		throw new MTLog.Fatal("Unepected trips to merge %s & %s", mTrip, mTripToMerge);
 	}
 
 	private static final Pattern START_WITH_FACE_A = Pattern.compile("^(face à )", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
@@ -214,9 +213,7 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 			} else if (gStop.getStopId().startsWith("SMS")) {
 				stopId = 300000;
 			} else {
-				System.out.println("Stop doesn't have an ID (start with)! " + gStop);
-				System.exit(-1);
-				stopId = -1;
+				throw new MTLog.Fatal("Stop doesn't have an ID (start with)! " + gStop);
 			}
 			if (gStop.getStopId().endsWith("A")) {
 				stopId += 1000;
@@ -225,13 +222,10 @@ public class LanaudiereCRTLBusAgencyTools extends DefaultAgencyTools {
 			} else if (gStop.getStopId().endsWith("D")) {
 				stopId += 4000;
 			} else {
-				System.out.println("Stop doesn't have an ID (end with)! " + gStop);
-				System.exit(-1);
+				throw new MTLog.Fatal("Stop doesn't have an ID (end with)! " + gStop);
 			}
 			return stopId + digits;
 		}
-		System.out.printf("\nUnexpected stop ID for %s!\n", gStop);
-		System.exit(-1);
-		return -1;
+		throw new MTLog.Fatal("Unexpected stop ID for %s!", gStop);
 	}
 }
